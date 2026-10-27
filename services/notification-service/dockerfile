@@ -1,0 +1,26 @@
+# Build Stage
+FROM golang@sha256:1ae0735f00daffa3aaf1363a5184c0d2dc55c78e3db4ec70241cdac97bf84b59  AS builder
+# sha image tag for golang:1.25-alpine
+
+WORKDIR /services/notification-service
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /notification-service ./main.go
+
+# Production Stage
+
+FROM gcr.io/distroless/static:nonroot@sha256:18f4cc26c9ffa7f20a359298be7deadac5c607c8e03a02b8119f1a5fc2f82c99 AS production
+# sha image tag for consistent distroless:nonroot base image
+
+WORKDIR /app
+
+COPY --from=builder /notification-service /notification-service
+
+EXPOSE 8084
+
+ENTRYPOINT ["/notification-service"]
