@@ -4,7 +4,7 @@ FROM golang@sha256:1ae0735f00daffa3aaf1363a5184c0d2dc55c78e3db4ec70241cdac97bf84
 
 WORKDIR /services/worker
 
-COPY go.mod go.sum ./
+COPY go.mod ./
 
 RUN go mod download
 
