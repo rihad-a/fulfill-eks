@@ -46,7 +46,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 }
 
-resource "aws_nat_gateway" "naat" {
+resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
   subnet_id     = values(aws_subnet.public)[0].id
 
@@ -77,7 +77,7 @@ resource "aws_route_table" "private" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.naat.id
+    gateway_id = aws_nat_gateway.nat.id
   }
 }
 
