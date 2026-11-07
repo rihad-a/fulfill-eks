@@ -35,6 +35,11 @@ variable "admin_user_arn" {
   type        = string
 }
 
+variable "eks_public_access_cidrs" {
+  description = "List of CIDR blocks that can access the Amazon EKS public API server endpoint"
+  type        = list(string)
+}
+
 
 # Module Variables
 

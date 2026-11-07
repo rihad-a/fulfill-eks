@@ -54,6 +54,11 @@ variable "node_group_min_size" {
   type        = number
 }
 
+variable "eks_public_access_cidrs" {
+  description = "List of CIDR blocks that can access the Amazon EKS public API server endpoint"
+  type        = list(string)
+}
+
 variable "admin_user_arn" {
   description = "The ARN to grant the admin user CLI access to the EKS cluster"
   type        = string

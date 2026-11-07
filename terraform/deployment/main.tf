@@ -26,5 +26,6 @@ module "eks" {
   node_group_max_size     = var.node_group_max_size
   node_group_min_size     = var.node_group_min_size
   admin_user_arn = var.admin_user_arn
+  eks_public_access_cidrs = var.eks_public_access_cidrs
 
 }
