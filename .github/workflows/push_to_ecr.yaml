@@ -1,0 +1,59 @@
+name: Build, tag and push microservice images to ECR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+ AWS_REGION: eu-west-2
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+
+    strategy:
+      matrix:
+        include:
+          - service_name: api-gateway
+          - service_name: dashboard-api
+          - service_name: inventory-service
+          - service_name: notification-service
+          - service_name: order-service
+          - service_name: payment-service
+          - service_name: scheduler
+          - service_name: shipping-service
+          - service_name: worker
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: Github_Actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Check for ECR repository and create if it does not exist
+        run: aws ecr create-repository --region ${{ env.AWS_REGION }} --repository-name ${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }} || true
+    
+      - name: Build Docker image
+        run: |
+            docker build -t ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }} ./services/${{ matrix.service_name }}
+
+      - name: Tag and Push ${{ matrix.service_name }} Docker image
+        run: |
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+                    
+            docker tag ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }}:latest ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }}:${{ github.sha }}
+                    
+            docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }}:${{ github.sha }} 
+            docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }}:latest
