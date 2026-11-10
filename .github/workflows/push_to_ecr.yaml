@@ -49,6 +49,16 @@ jobs:
         run: |
             docker build -t ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }} ./services/${{ matrix.service_name }}
 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: '${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REGISTRY_NAME }}/${{ matrix.service_name }}'
+          format: 'table'
+          exit-code: '0' # Change to '1' in production to fail the build on vulnerabilities
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
       - name: Tag and Push ${{ matrix.service_name }} Docker image
         run: |
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
