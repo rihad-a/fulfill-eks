@@ -27,5 +27,15 @@ module "eks" {
   node_group_min_size     = var.node_group_min_size
   admin_user_arn = var.admin_user_arn
   eks_public_access_cidrs = var.eks_public_access_cidrs
+}
 
+module "sqs" {
+  source = "./sqs"
+
+  # SQS Variables
+
+  worker_queue_name = var.worker_queue_name
+  worker_dlq_name   = var.worker_dlq_name
+  visibility_timeout_seconds = var.visibility_timeout_seconds
+  max_receive_count = var.max_receive_count
 }
