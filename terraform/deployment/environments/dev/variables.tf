@@ -5,7 +5,17 @@ variable "aws_tags" {
   type        = map(string)
 }
 
+variable "environment" {
+  description = "The environment name (e.g., dev, staging, prod)"
+  type        = string
+}
+
 # VPC Variables
+
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
+  type        = string
+}
 
 variable "public_subnet_cidrs" {
   type        = map(string)
@@ -64,6 +74,21 @@ variable "admin_user_arn" {
   type        = string
 }
 
+variable "sqs_pod_identity_role_name" {
+  description = "The name of the IAM role for the SQS pod identity association"
+  type        = string
+}
+
+variable "sqs_pod_identity_policy_name" {
+  description = "The name of the IAM policy for the SQS pod identity association"
+  type        = string
+}
+
+variable "sqs_pod_identity_service_account" {
+  description = "The service account for the SQS pod identity association"
+  type        = string
+}
+
 # SQS Variables
 
 variable "worker_queue_name" {
@@ -85,4 +110,3 @@ variable "max_receive_count" {
   description = "Number of times a message can fail before moving to the DLQ"
   type        = number
 }
-

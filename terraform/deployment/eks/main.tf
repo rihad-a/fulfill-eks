@@ -1,5 +1,5 @@
 resource "aws_eks_cluster" "main" {
-  name = var.cluster_name
+  name = "${var.environment}-${var.cluster_name}"
 
   access_config {
     authentication_mode = "API"
@@ -22,7 +22,7 @@ resource "aws_eks_cluster" "main" {
 }
 
 resource "aws_iam_role" "cluster" {
-  name = "${var.cluster_name}-role"
+  name = "${var.environment}-${var.cluster_name}-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -50,7 +50,7 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
 resource "aws_eks_node_group" "main" {
 
   cluster_name    = aws_eks_cluster.main.name
-  node_group_name = var.node_group_name
+  node_group_name = "${var.environment}-${var.node_group_name}"
   node_role_arn   = aws_iam_role.node_group.arn
   subnet_ids      = var.private_subnet_ids
 
@@ -72,7 +72,7 @@ resource "aws_eks_node_group" "main" {
 }
 
 resource "aws_iam_role" "node_group" {
-  name = "${var.node_group_name}-role"
+  name = "${var.environment}-${var.node_group_name}-role"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -154,4 +154,62 @@ resource "aws_eks_addon" "coredns" {
   depends_on = [
     aws_eks_node_group.main
   ]
+}
+
+# Pod Identity Association for SQS
+
+resource "aws_iam_role" "sqs_pod_identity" {
+  name = "${var.environment}-${var.sqs_pod_identity_role_name}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "sqs_pod_identity_policy" {
+  name = "${var.environment}-${var.sqs_pod_identity_policy_name}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [
+          var.worker_queue_arn,
+          var.worker_dlq_arn
+        ]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "sqs_pod_identity_policy_attachment" {
+  policy_arn = aws_iam_policy.sqs_pod_identity_policy.arn
+  role       = aws_iam_role.sqs_pod_identity.name
+}
+
+resource "aws_eks_pod_identity_association" "sqs_pod_identity_association" {
+  cluster_name    = aws_eks_cluster.main.name
+  namespace       = var.environment
+  service_account = var.sqs_pod_identity_service_account
+  role_arn        = aws_iam_role.sqs_pod_identity.arn
 }

@@ -1,3 +1,10 @@
+# General Variables
+
+variable "environment" {
+  description = "The environment name (e.g., dev, staging, prod)"
+  type        = string
+}
+
 # EKS Variables
 
 variable "cluster_name" {
@@ -40,10 +47,35 @@ variable "eks_public_access_cidrs" {
   type        = list(string)
 }
 
+variable "sqs_pod_identity_role_name" {
+  description = "The name of the IAM role for the SQS pod identity association"
+  type        = string
+}
+
+variable "sqs_pod_identity_policy_name" {
+  description = "The name of the IAM policy for the SQS pod identity association"
+  type        = string
+}
+
+variable "sqs_pod_identity_service_account" {
+  description = "The service account for the SQS pod identity association"
+  type        = string
+}
+
 
 # Module Variables
 
 variable "private_subnet_ids" {
   description = "List of private subnet IDs from the VPC module"
   type        = list(string)
+}
+
+variable "worker_queue_arn" {
+  description = "The ARN of the SQS worker queue"
+  type        = string
+}
+
+variable "worker_dlq_arn" {
+  description = "The ARN of the SQS dead letter queue"
+  type        = string
 }
