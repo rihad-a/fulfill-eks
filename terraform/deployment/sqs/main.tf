@@ -1,7 +1,7 @@
 # Creating the main SQS queue for worker events
 
 resource "aws_sqs_queue" "worker_queue" {
-  name                       = var.worker_queue_name
+  name                       = "${var.environment}-${var.worker_queue_name}"
   delay_seconds              = 0
   max_message_size           = 262144 # 256 KB
   message_retention_seconds  = 345600 # 4 Days
@@ -17,7 +17,7 @@ resource "aws_sqs_queue" "worker_queue" {
 # Creating the Dead Letter Queue (DLQ)
 
 resource "aws_sqs_queue" "worker_dlq" {
-  name                      = var.worker_dlq_name
+  name                      = "${var.environment}-${var.worker_dlq_name}"
   message_retention_seconds = 1209600 # 14 Days
 }
 

@@ -1,7 +1,7 @@
 # Creating a VPC
 
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 }
@@ -17,7 +17,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                     = "fulfill-eks-public-subnet-${each.key}"
+    Name                     = "${var.environment}-fulfill-eks-public-subnet-${each.key}"
     "kubernetes.io/role/elb" = 1
   }
 }
@@ -30,7 +30,7 @@ resource "aws_subnet" "private" {
   availability_zone = each.key
 
   tags = {
-    Name                              = "fulfill-eks-private-subnet-${each.key}"
+    Name                              = "${var.environment}-fulfill-eks-private-subnet-${each.key}"
     "kubernetes.io/role/internal-elb" = 1,
     "karpenter.sh/discovery"          = "fulfill-eks"
   }
@@ -91,7 +91,7 @@ resource "aws_route_table_association" "private" {
 # Creating VPC Endpoints
 
 resource "aws_security_group" "vpc_endpoint" {
-  name        = "vpc_endpoint_interface_sg"
+  name        = "${var.environment}-vpc_endpoint_interface_sg"
   description = "Allow 443 inbound from the VPC cidr for the VPC interface endpoints"
   vpc_id      = aws_vpc.main.id
 }
@@ -128,6 +128,6 @@ resource "aws_vpc_endpoint" "interfaces" {
   ]
 
   tags = {
-    Name = "fulfill-eks-vpc-endpoint-${each.key}"
+    Name = "${var.environment}-fulfill-eks-vpc-endpoint-${each.key}"
   }
 }

@@ -1,4 +1,16 @@
+# General Variables
+
+variable "environment" {
+  description = "The environment name (e.g., dev, staging, prod)"
+  type        = string
+}
+
 # VPC Variables
+
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
+  type        = string
+}
 
 variable "public_subnet_cidrs" {
   type        = map(string)
