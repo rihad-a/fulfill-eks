@@ -106,7 +106,6 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
 resource "aws_eks_addon" "pod_identity_agent" {
   cluster_name  = aws_eks_cluster.main.name
   addon_name    = "eks-pod-identity-agent"
-  addon_version = "v1.3.4-eksbuild.1"
   resolve_conflicts_on_update = "PRESERVE"
 
   depends_on = [
@@ -212,4 +211,59 @@ resource "aws_eks_pod_identity_association" "sqs_pod_identity_association" {
   namespace       = var.environment
   service_account = var.sqs_pod_identity_service_account
   role_arn        = aws_iam_role.sqs_pod_identity.arn
+}
+
+# Pod Identity Association for External Secrets Operator
+
+resource "aws_iam_role" "eso_pod_identity" {
+  name = "${var.environment}-${var.eso_pod_identity_role_name}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "eso_pod_identity_policy" {
+  name = "${var.environment}-${var.eso_pod_identity_policy_name}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = [
+          var.postgres_secret_arn
+        ]
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eso_pod_identity_policy_attachment" {
+  policy_arn = aws_iam_policy.eso_pod_identity_policy.arn
+  role       = aws_iam_role.eso_pod_identity.name
+}
+
+resource "aws_eks_pod_identity_association" "eso_pod_identity_association" {
+  cluster_name    = aws_eks_cluster.main.name
+  namespace       = "external-secrets"
+  service_account = "external-secrets"
+  role_arn        = aws_iam_role.eso_pod_identity.arn
 }

@@ -89,6 +89,16 @@ variable "sqs_pod_identity_service_account" {
   type        = string
 }
 
+variable "eso_pod_identity_role_name" {
+  description = "The name of the IAM role for the External Secrets Operator pod identity association"
+  type        = string
+}
+
+variable "eso_pod_identity_policy_name" {
+  description = "The name of the IAM policy for the External Secrets Operator pod identity association"
+  type        = string
+}
+
 # SQS Variables
 
 variable "worker_queue_name" {
@@ -109,4 +119,11 @@ variable "visibility_timeout_seconds" {
 variable "max_receive_count" {
   description = "Number of times a message can fail before moving to the DLQ"
   type        = number
+}
+
+# Secrets Manager Variables
+
+variable "postgres_secret_name" {
+  description = "The name of the PostgreSQL secret"
+  type        = string
 }
