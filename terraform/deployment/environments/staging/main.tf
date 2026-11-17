@@ -17,9 +17,10 @@ module "eks" {
 
   # Module Variables
 
-  private_subnet_ids = module.vpc.private_subnet_ids
-  worker_queue_arn   = module.sqs.worker_queue_arn
-  worker_dlq_arn     = module.sqs.worker_dlq_arn
+  private_subnet_ids  = module.vpc.private_subnet_ids
+  worker_queue_arn    = module.sqs.worker_queue_arn
+  worker_dlq_arn      = module.sqs.worker_dlq_arn
+  postgres_secret_arn = module.secrets_manager.postgres_secret_arn
 
   # EKS Variables
 
@@ -35,6 +36,8 @@ module "eks" {
   sqs_pod_identity_role_name       = var.sqs_pod_identity_role_name
   sqs_pod_identity_policy_name     = var.sqs_pod_identity_policy_name
   sqs_pod_identity_service_account = var.sqs_pod_identity_service_account
+  eso_pod_identity_role_name       = var.eso_pod_identity_role_name
+  eso_pod_identity_policy_name     = var.eso_pod_identity_policy_name
 }
 
 module "sqs" {
@@ -47,4 +50,13 @@ module "sqs" {
   worker_dlq_name            = var.worker_dlq_name
   visibility_timeout_seconds = var.visibility_timeout_seconds
   max_receive_count          = var.max_receive_count
+}
+
+module "secrets_manager" {
+  source = "../../secrets_manager"
+
+  # Secrets Manager Variables
+
+  environment          = var.environment
+  postgres_secret_name = var.postgres_secret_name
 }

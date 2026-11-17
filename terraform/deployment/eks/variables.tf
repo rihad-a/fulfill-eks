@@ -62,6 +62,15 @@ variable "sqs_pod_identity_service_account" {
   type        = string
 }
 
+variable "eso_pod_identity_role_name" {
+  description = "The name of the IAM role for the External Secrets Operator pod identity association"
+  type        = string
+}
+
+variable "eso_pod_identity_policy_name" {
+  description = "The name of the IAM policy for the External Secrets Operator pod identity association"
+  type        = string
+}
 
 # Module Variables
 
@@ -77,5 +86,10 @@ variable "worker_queue_arn" {
 
 variable "worker_dlq_arn" {
   description = "The ARN of the SQS dead letter queue"
+  type        = string
+}
+
+variable "postgres_secret_arn" {
+  description = "The ARN of the PostgreSQL secret in AWS Secrets Manager"
   type        = string
 }
