@@ -38,6 +38,7 @@ module "eks" {
   sqs_pod_identity_service_account = var.sqs_pod_identity_service_account
   eso_pod_identity_role_name       = var.eso_pod_identity_role_name
   eso_pod_identity_policy_name     = var.eso_pod_identity_policy_name
+  ebs_csi_pod_identity_role_name   = var.ebs_csi_pod_identity_role_name
 }
 
 module "sqs" {
