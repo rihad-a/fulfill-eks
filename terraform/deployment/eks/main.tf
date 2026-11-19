@@ -131,7 +131,7 @@ resource "aws_eks_access_policy_association" "admin_user_access_policy" {
   }
 }
 
-# EKS networking and DNS addons
+# EKS networking and DNS, and EBS CSI driver addons
 
 resource "aws_eks_addon" "vpc_cni" {
   cluster_name                = aws_eks_cluster.main.name
@@ -152,6 +152,18 @@ resource "aws_eks_addon" "coredns" {
 
   depends_on = [
     aws_eks_node_group.main
+  ]
+}
+
+resource "aws_eks_addon" "ebs_csi_driver" {
+  cluster_name                = aws_eks_cluster.main.name
+  addon_name                  = "aws-ebs-csi-driver"
+  resolve_conflicts_on_update = "PRESERVE"
+
+  depends_on = [
+    aws_eks_node_group.main,
+    aws.aws_iam_role_policy_attachment.ebs_csi_pod_identity_policy_attachment,
+    aws_eks_pod_identity_association.ebs_csi_pod_identity_association
   ]
 }
 
@@ -266,4 +278,39 @@ resource "aws_eks_pod_identity_association" "eso_pod_identity_association" {
   namespace       = "external-secrets"
   service_account = "external-secrets"
   role_arn        = aws_iam_role.eso_pod_identity.arn
+}
+
+# Pod Identity Association for the EBS CSI Driver
+
+resource "aws_iam_role" "ebs_csi_pod_identity" {
+  name = "${var.environment}-${var.ebs_csi_pod_identity_role_name}-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi_pod_identity_policy_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.ebs_csi_pod_identity.name
+}
+
+resource "aws_eks_pod_identity_association" "ebs_csi_pod_identity_association" {
+  cluster_name    = aws_eks_cluster.main.name
+  namespace       = "kube-system"
+  service_account = "ebs-csi-controller-sa"
+  role_arn        = aws_iam_role.ebs_csi_pod_identity.arn
 }

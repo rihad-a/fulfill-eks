@@ -99,6 +99,11 @@ variable "eso_pod_identity_policy_name" {
   type        = string
 }
 
+variable "ebs_csi_pod_identity_role_name" {
+  description = "The name of the IAM role for the EBS CSI driver pod identity association"
+  type        = string
+}
+
 # SQS Variables
 
 variable "worker_queue_name" {
