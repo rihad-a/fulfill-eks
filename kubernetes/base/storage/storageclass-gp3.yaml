@@ -8,7 +8,6 @@ allowVolumeExpansion: true
 parameters:
   csi.storage.k8s.io/fstype: ext4
   type: gp3
-  iopsPerGB: "30"
   allowAutoIOPSPerGBIncrease: "true"
   encrypted: "true"
 allowedTopologies:

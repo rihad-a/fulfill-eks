@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fulfill-configmap
+data:
+  postgres_user: "fulfill_user"
+  postgres_db: "fulfill_db"
